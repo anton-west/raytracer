@@ -1,7 +1,11 @@
 mod vec3;
 mod ray;
+mod hittable;
 
-use crate::vec3::*;
+use crate::vec3::Vec3;
+use crate::vec3::Color;
+use crate::vec3::Point3;
+
 use crate::ray::Ray;
 
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
@@ -40,7 +44,7 @@ fn main() {
             };
             
             let color = ray_color(&ray);
-            let color_string = color_to_string(color);
+            let color_string = vec3::color_to_string(color);
             println!("{color_string}");
 
         }
@@ -52,7 +56,7 @@ fn ray_color(ray: &Ray) -> Color {
     let t = hit_sphere(&Vec3(0.0, 0.0, -1.0), 0.5, ray);
 
     if t > 0.0 {
-        let normal = unit_vector(ray.at(t) - Vec3(0.0, 0.0, -1.0));
+        let normal = vec3::unit_vector(ray.at(t) - Vec3(0.0, 0.0, -1.0));
         return Vec3(normal.x() + 1.0, normal.y() + 1.0, normal.z() + 1.0) * 0.5
     }
 
@@ -64,7 +68,7 @@ fn ray_color(ray: &Ray) -> Color {
 fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
     let oc: Vec3 = ray.origin - *center;
     let a = ray.direction.length_squared();
-    let half_b = dot(oc, ray.direction);
+    let half_b = vec3::dot(oc, ray.direction);
     let c = oc.length_squared() - radius*radius;
     let discriminant = half_b * half_b - a*c;
     
