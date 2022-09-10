@@ -1,7 +1,7 @@
 use raytracer::*;
 
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const IMAGE_HEIGHT: u32 = 256;
+const IMAGE_HEIGHT: u32 = 1024;
 const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
 
 fn main() {
