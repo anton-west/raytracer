@@ -1,18 +1,33 @@
 mod vec3;
 mod ray;
 mod hittable;
+mod hittable_list;
 mod sphere;
 
-use crate::vec3::Vec3;
-use crate::vec3::Color;
-use crate::vec3::Point3;
-use crate::sphere::*;
-
+use hittable::HitRecord;
+use hittable::Hittable;
+use hittable_list::HittableList;
+use crate::vec3::{Vec3, Color, Point3, unit_vector};
 use crate::ray::Ray;
+use crate::sphere::Sphere;
 
 const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const IMAGE_HEIGHT: u32 = 512;
+const IMAGE_HEIGHT: u32 = 256;
 const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
+
+fn ray_color(r: &Ray, world: &HittableList) -> Color {
+
+    let mut rec: HitRecord = HitRecord::default();
+    
+    if world.hit(r, 0.0, f64::MAX, &mut rec) {
+        return (rec.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
+    }
+
+    let unit_direction = unit_vector(r.direction);
+    let t = (unit_direction.y() + 1.0) * 0.5;
+    Color::new(1.0, 1.0 , 1.0) * (1.0 - t) + Color::new(0.5, 0.7, 1.0) * t
+}
+
 
 fn main() {
 
@@ -25,8 +40,17 @@ fn main() {
     let horizontal = Vec3(viewport_width, 0.0, 0.0);
     let vertical = Vec3(0.0, viewport_height, 0.0);
 
-    let lower_left_corner = camera_origin - (horizontal/2.0) - (vertical/2.0) - Vec3(0.0, 0.0, focal_length); 
+    let lower_left_corner = camera_origin - (horizontal/2.0) - (vertical/2.0) - Vec3(0.0, 0.0, focal_length);
+    
+    //world
+    let mut list: Vec<Box<dyn Hittable>> = Vec::new();
+    //add spheres to list
+    list.push( Box::new( Sphere::new(Point3::new(0.0, 0.0, -1.0 ), 0.5) ) );
+    list.push( Box::new( Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0) ) );
 
+    let world: HittableList = HittableList::new(list);
+
+    //rendering
     println!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255");
 
     for j in (0..IMAGE_HEIGHT).rev() {
@@ -40,43 +64,15 @@ fn main() {
             let u = i as f64 / (IMAGE_WIDTH-1) as f64;
             let v  = j as f64 / (IMAGE_HEIGHT-1) as f64;
 
-            let ray = Ray { 
+            let r = Ray { 
                 origin: camera_origin,
                 direction: lower_left_corner + horizontal * u + vertical * v - camera_origin,
             };
             
-            let color = ray_color(&ray);
+            let color: Color = ray_color(&r, &world);
             let color_string = vec3::color_to_string(color);
             println!("{color_string}");
 
         }
-    }
-}
-
-fn ray_color(ray: &Ray) -> Color {
-
-    let t = hit_sphere(&Vec3(0.0, 0.0, -1.0), 0.5, ray);
-
-    if t > 0.0 {
-        let normal = vec3::unit_vector(ray.at(t) - Vec3(0.0, 0.0, -1.0));
-        return Vec3(normal.x() + 1.0, normal.y() + 1.0, normal.z() + 1.0) * 0.5
-    }
-
-    let unit_direction = ray.direction;
-    let t = (unit_direction.y() + 1.0) * 0.5;
-    Vec3(1.0, 1.0 , 1.0) * (1.0 - t) + Vec3(0.5, 0.7, 1.0) * t
-}
-
-fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
-    let oc: Vec3 = ray.origin - *center;
-    let a = ray.direction.length_squared();
-    let half_b = vec3::dot(oc, ray.direction);
-    let c = oc.length_squared() - radius*radius;
-    let discriminant = half_b * half_b - a*c;
-    
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (-half_b - f64::sqrt(discriminant)) / a
     }
 }
