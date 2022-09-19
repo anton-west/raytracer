@@ -23,6 +23,10 @@ impl Vec3 {
     pub fn new(x:f64, y:f64, z:f64) -> Vec3 {
         Vec3(x,y,z)
     }
+
+    pub fn origin() -> Point3 {
+        Vec3(0.0, 0.0, 0.0)
+    }
     
     pub fn get_components(&self) -> (f64, f64, f64) {
         (self.0, self.1 , self.2)
@@ -111,14 +115,20 @@ pub fn unit_vector(vector: Vec3) -> Vec3 {
     vector / vector.length()
 }
 
-pub fn color_to_string(color: Color) -> String{
-    let x = clamp(color.0, 0.0, 1.0);
-    let y = clamp(color.1, 0.0, 1.0);
-    let z = clamp(color.2, 0.0, 1.0);
+pub fn color_to_string(color: Color, samples_per_pixel: u32) -> String{
+    let x = color.0;
+    let y = color.1;
+    let z = color.2;
 
-    let r = (x * 255.99) as u8;
-    let g = (y * 255.99) as u8;
-    let b = (z * 255.99) as u8;
+    let scale = 1.0 / (samples_per_pixel as f64);
+
+    let r = x * scale;
+    let g = y * scale;
+    let b = z * scale;
+
+    let r = (256.0 * clamp(r, 0.0, 0.999)) as u8;
+    let g = (256.0 * clamp(g, 0.0, 0.999)) as u8;
+    let b = (256.0 * clamp(b, 0.0, 0.999)) as u8;
 
     format!("{r} {g} {b}")
 }
@@ -224,14 +234,31 @@ mod tests {
     #[test]
     fn write_color1() {
         let a: Color = Vec3(0.5, 0.5 , 0.5);
-        let result = color_to_string(a);
-        assert_eq!(result, String::from("127 127 127"))
+        let result = color_to_string(a, 1);
+        assert_eq!(result, String::from("128 128 128"))
     }
 
     #[test]
     fn write_color2() {
         let a: Color = Vec3(0.5, -1.0 , 3.0);
-        let result = color_to_string(a);
-        assert_eq!(result, String::from("127 0 255"))
+        let result = color_to_string(a, 1);
+        assert_eq!(result, String::from("128 0 255"))
+    }
+
+    #[test]
+    fn write_color3() {
+        let a: Color = Vec3(1.0, 1.0 , 1.0);
+        let result = color_to_string(a, 1);
+        assert_eq!(result, String::from("255 255 255"))
+    }
+
+    #[test]
+    fn write_color4() {
+        let a: Color = Vec3(1.0, 1.0 , 1.0);
+        let b: Color = Vec3(1.0, 1.0 , 0.0);
+        let c: Color = Vec3(1.0, 0.0 , 0.0);
+        let final_res = a + b + c;
+        let result = color_to_string(final_res, 3);
+        assert_eq!(result, String::from("255 170 85"))
     }
 }

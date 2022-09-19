@@ -1,3 +1,20 @@
+use rand::Rng;
+
+pub fn random_f64() -> f64 {
+    let mut rng = rand::thread_rng();
+    Rng::gen_range(&mut rng, 0.0..1.0)
+}
+
+pub fn random_warg(min: f64, max: f64) -> f64 {
+    let mut rng = rand::thread_rng();
+    Rng::gen_range(&mut rng, min..max)
+}
+
+//handy math helpers
+pub const PI: f64 = std::f64::consts::PI;
+
+pub const INFINITY: f64 = f64::INFINITY;
+
 pub fn clamp(value: f64, lower: f64, upper: f64) -> f64 {
     if value < lower {
         lower
@@ -6,6 +23,10 @@ pub fn clamp(value: f64, lower: f64, upper: f64) -> f64 {
     } else {
         value
     }
+}
+
+pub fn deg_to_rad(deg: f64) -> f64 {
+    deg *  PI / 180.0
 }
 
 // tests go here
@@ -32,5 +53,12 @@ mod tests {
         let a = 3.4;
         let result = clamp(a, 4.0 , 5.0);
         assert_eq!(result, 4.0)
+    }
+
+    #[test]
+    fn deg_to_rad1() {
+        let deg = 90.0;
+        let result = deg_to_rad(deg);
+        assert_eq!(result, PI / 2.0)
     }
 }

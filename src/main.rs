@@ -3,23 +3,26 @@ mod ray;
 mod hittable;
 mod hittable_list;
 mod sphere;
+mod camera;
 
-use hittable::HitRecord;
-use hittable::Hittable;
+use raytracer::{INFINITY, random_f64};
+use hittable::{Hittable, HitRecord};
 use hittable_list::HittableList;
 use crate::vec3::{Vec3, Color, Point3, unit_vector};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
+use crate::camera::Camera;
 
-const ASPECT_RATIO: f64 = 16.0 / 9.0;
-const IMAGE_HEIGHT: u32 = 256;
-const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
+pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
+pub const IMAGE_HEIGHT: u32 = 256;
+pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
+pub const SAMPLES_PER_PIXEL: u32 = 250;
 
 fn ray_color(r: &Ray, world: &HittableList) -> Color {
 
-    let mut rec: HitRecord = HitRecord::default();
+    let mut rec = HitRecord::default();
     
-    if world.hit(r, 0.0, f64::MAX, &mut rec) {
+    if world.hit(r, 0.0, INFINITY, &mut rec) {
         return (rec.normal + Color::new(1.0, 1.0, 1.0)) * 0.5;
     }
 
@@ -31,25 +34,16 @@ fn ray_color(r: &Ray, world: &HittableList) -> Color {
 
 fn main() {
 
-    //camera
-    let viewport_height = 2.0;
-    let viewport_width = ASPECT_RATIO * viewport_height;
-    let focal_length = 1.0;
-
-    let camera_origin = Vec3(0.0, 0.0, 0.0);
-    let horizontal = Vec3(viewport_width, 0.0, 0.0);
-    let vertical = Vec3(0.0, viewport_height, 0.0);
-
-    let lower_left_corner = camera_origin - (horizontal/2.0) - (vertical/2.0) - Vec3(0.0, 0.0, focal_length);
-    
     //world
     let mut list: Vec<Box<dyn Hittable>> = Vec::new();
     //add spheres to list
     list.push( Box::new( Sphere::new(Point3::new(0.0, 0.0, -1.0 ), 0.5) ) );
     list.push( Box::new( Sphere::new(Point3::new(0.0, -100.5, -1.0), 100.0) ) );
-
     let world: HittableList = HittableList::new(list);
 
+    //camera
+    let camera = Camera::default();
+    
     //rendering
     println!("P3\n{IMAGE_WIDTH} {IMAGE_HEIGHT}\n255");
 
@@ -60,19 +54,19 @@ fn main() {
 
 
         for i in 0..IMAGE_WIDTH {
-
-            let u = i as f64 / (IMAGE_WIDTH-1) as f64;
-            let v  = j as f64 / (IMAGE_HEIGHT-1) as f64;
-
-            let r = Ray { 
-                origin: camera_origin,
-                direction: lower_left_corner + horizontal * u + vertical * v - camera_origin,
-            };
             
-            let color: Color = ray_color(&r, &world);
-            let color_string = vec3::color_to_string(color);
-            println!("{color_string}");
+            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
+            for _ in 0..SAMPLES_PER_PIXEL {
+                let u = (i as f64 + random_f64()) / (IMAGE_WIDTH-1) as f64;
+                let v  = (j as f64 + random_f64()) / (IMAGE_HEIGHT-1) as f64;
+
+                let r = camera.get_ray(u, v);
+            
+                pixel_color = pixel_color + ray_color(&r, &world);  //TODO: impl add assign
+            }
+            let color_string = vec3::color_to_string(pixel_color, SAMPLES_PER_PIXEL);
+            print!("{color_string}\n");
         }
     }
 }
