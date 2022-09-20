@@ -1,11 +1,13 @@
 use rand::Rng;
 
+//handy rng helpers
 pub fn random_f64() -> f64 {
     let mut rng = rand::thread_rng();
     Rng::gen_range(&mut rng, 0.0..1.0)
 }
 
-pub fn random_warg(min: f64, max: f64) -> f64 {
+//return random float in range [min, max)
+pub fn random_in_range(min: f64, max: f64) -> f64 {
     let mut rng = rand::thread_rng();
     Rng::gen_range(&mut rng, min..max)
 }

@@ -20,7 +20,7 @@ impl Camera {
     pub fn default() -> Camera {
         let aspect_ratio = ASPECT_RATIO;
         let viewport_height =  2.0;
-        let viewport_width = ASPECT_RATIO * aspect_ratio;
+        let viewport_width = ASPECT_RATIO * viewport_height;
         let focal_length = 1.0;
         let origin = Point3::origin();
         let horizontal = Vec3::new(viewport_width, 0.0, 0.0);

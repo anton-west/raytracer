@@ -37,7 +37,7 @@ impl Vec3 {
         let y = self.1;
         let z = self.2;
 
-        f64::sqrt(x*x + y*y + z*z)
+        (x*x + y*y + z*z).sqrt()
     }
 
     pub fn length_squared(self) -> f64 {
@@ -81,6 +81,29 @@ impl ops::Mul<f64> for Vec3 {
     }
 }
 
+impl ops::Mul<Vec3> for f64 {
+    type Output = Vec3;
+
+    fn mul(self, vec3: Vec3) -> Vec3 {
+        Vec3(vec3.0 * self, vec3.1 * self, vec3.2 * self)
+    }
+}
+
+impl ops::Mul<Vec3> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        let a = self;
+        let b = rhs;
+
+        let i = a.1*b.2 - a.2*b.1;
+        let j = a.0*b.2 - a.2*b.0;
+        let k = a.0*b.1 - a.1*b.0;
+
+        Vec3(i,j,k)
+    }
+}
+
 impl ops::Div<f64> for Vec3 {
     type Output = Vec3;
     
@@ -99,11 +122,17 @@ impl PartialEq for Vec3 {
     }
 }
 
+impl ops::AddAssign for Vec3 {
+    fn add_assign(&mut self, rhs: Self) -> () {
+        *self = *self + rhs;
+    }
+}
+
 pub fn dot(a: Vec3, b: Vec3) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
 
-pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
+fn cross(a: Vec3, b: Vec3) -> Vec3 {
     let i = a.1*b.2 - a.2*b.1;
     let j = a.0*b.2 - a.2*b.0;
     let k = a.0*b.1 - a.1*b.0;
@@ -164,9 +193,16 @@ mod tests {
     }
 
     #[test]
-    fn scalar_mul() {
+    fn scalar_mul1() {
         let a = Vec3(1.0,2.0,3.0);
         let result = a * 5.0;
+        assert_eq!(result, Vec3(5.0, 10.0, 15.0));
+    }
+
+    #[test]
+    fn scalar_mul2() {
+        let a = Vec3(1.0,2.0,3.0);
+        let result = 5.0 * a;
         assert_eq!(result, Vec3(5.0, 10.0, 15.0));
     }
 
@@ -177,6 +213,15 @@ mod tests {
         assert_eq!(result, Vec3(-0.5, -1.0, -1.5));
     }
 
+    #[test]
+    fn add_assign() {
+        let mut a = Vec3::origin();
+        a += Vec3::new(1.0, 1.0, 1.0);
+        a += Vec3::new(0.0, -2.0, 1.0);
+        let result = a;
+        assert_eq!(result, Vec3(1.0, -1.0, 2.0));
+    }
+    
     #[test]
     fn dot1() {
         let a = Vec3(1.0, 0.0, 0.0);
@@ -206,6 +251,14 @@ mod tests {
         let a = Vec3(1.0, 0.0, 0.0);
         let b = Vec3(0.0, 1.0, 0.0);
         let result = cross(b,a);
+        assert_eq!(result, Vec3(0.0, 0.0, -1.0))
+    }
+
+    #[test]
+    fn cross_overload() {
+        let a = Vec3(1.0, 0.0, 0.0);
+        let b = Vec3(0.0, 1.0, 0.0);
+        let result = b*a;
         assert_eq!(result, Vec3(0.0, 0.0, -1.0))
     }
 
