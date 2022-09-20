@@ -93,8 +93,8 @@ impl ops::Mul<Vec3> for Vec3 {
     type Output = Vec3;
 
     fn mul(self, rhs: Vec3) -> Vec3 {
-        let a = self;
-        let b = rhs;
+        let a = &self;
+        let b = &rhs;
 
         let i = a.1*b.2 - a.2*b.1;
         let j = a.0*b.2 - a.2*b.0;
