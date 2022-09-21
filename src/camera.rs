@@ -1,4 +1,4 @@
-use crate::{ASPECT_RATIO, IMAGE_HEIGHT, IMAGE_WIDTH};
+use crate::{ASPECT_RATIO};
 use crate::vec3::{Vec3, Point3};
 use crate::ray::Ray;
 
