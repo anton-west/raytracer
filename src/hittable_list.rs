@@ -25,6 +25,7 @@ impl Hittable for HittableList {
                 rec.set_t(closest_so_far);
                 rec.set_point(temp_rec.point());
                 rec.set_normal(temp_rec.normal());
+                rec.set_material(temp_rec.material());
             }
         }
         hit_anything

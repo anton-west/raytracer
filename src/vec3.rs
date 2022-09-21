@@ -72,6 +72,21 @@ impl Vec3 {
         unit_vector(Vec3::random_in_unit_sphere())
     }
 
+    pub fn near_zero(self) -> bool {
+        let s = 1e-8;
+        (self.0 < s) && (self.1 < s) && (self.2 < s)
+    }
+
+}
+
+impl Color {
+    pub const RED: Vec3 = Vec3(1.0, 0.0, 0.0);
+    pub const GREEN: Vec3 = Vec3(0.0, 1.0, 0.0);
+    pub const BLUE: Vec3 = Vec3(0.0, 0.0, 1.0);
+    pub const YELLOW: Vec3 = Vec3(1.0, 1.0, 0.0);
+    pub const MAGENTA: Vec3 = Vec3(1.0, 0.0, 1.0);
+    pub const BLACK: Vec3 = Vec3(0.0, 0.0, 0.0);
+    pub const WHITE: Vec3 = Vec3(1.0, 1.0, 1.0);
 }
 
 impl ops::Neg for Vec3{
@@ -114,6 +129,7 @@ impl ops::Mul<Vec3> for f64 {
     }
 }
 
+
 impl ops::Mul<Vec3> for Vec3 {
     type Output = Vec3;
 
@@ -121,9 +137,9 @@ impl ops::Mul<Vec3> for Vec3 {
         let a = &self;
         let b = &rhs;
 
-        let i = a.1*b.2 - a.2*b.1;
-        let j = a.0*b.2 - a.2*b.0;
-        let k = a.0*b.1 - a.1*b.0;
+        let i = a.0*b.0;
+        let j = a.1*b.1;
+        let k = a.2*b.2;
 
         Vec3(i,j,k)
     }
@@ -157,7 +173,7 @@ pub fn dot(a: Vec3, b: Vec3) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
 
-fn cross(a: Vec3, b: Vec3) -> Vec3 {
+pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
     let i = a.1*b.2 - a.2*b.1;
     let j = a.0*b.2 - a.2*b.0;
     let k = a.0*b.1 - a.1*b.0;
@@ -185,6 +201,10 @@ pub fn color_to_string(color: Color, gamma: f64, samples_per_pixel: u32) -> Stri
     let b = (256.0 * clamp(b, 0.0, 0.999)) as u8;
 
     format!("{r} {g} {b}")
+}
+
+pub fn reflect(vec_incoming: Vec3, normal: Vec3) -> Vec3 {
+    vec_incoming - 2.0 * dot(vec_incoming, normal)*normal
 }
 
 ///////////////////
@@ -280,11 +300,11 @@ mod tests {
     }
 
     #[test]
-    fn cross_overload() {
+    fn mul_overload() {
         let a = Vec3(1.0, 0.0, 0.0);
         let b = Vec3(0.0, 1.0, 0.0);
         let result = b*a;
-        assert_eq!(result, Vec3(0.0, 0.0, -1.0))
+        assert_eq!(result, Vec3(0.0, 0.0, 0.0))
     }
 
     #[test]
