@@ -15,7 +15,7 @@ pub fn random_in_range(min: f64, max: f64) -> f64 {
 //handy math helpers
 pub const PI: f64 = std::f64::consts::PI;
 
-pub const INFINITY: f64 = f64::INFINITY;
+pub const INFINITY: f64 = f64::MAX;
 
 pub fn clamp(value: f64, lower: f64, upper: f64) -> f64 {
     if value < lower {

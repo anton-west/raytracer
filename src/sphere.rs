@@ -21,7 +21,7 @@ impl Hittable for Sphere {
         let oc: Vec3 = r.origin - self.center;
         let a = r.direction.length_squared();
         let half_b = dot(oc, r.direction);
-        let c = oc.length_squared() - self.radius * self.radius;
+        let c = oc.length_squared() - (self.radius * self.radius);
 
         let discriminant = half_b * half_b - a * c;
 
@@ -30,10 +30,10 @@ impl Hittable for Sphere {
         }
         
         let sqrtd = discriminant.sqrt();
-        let root = (-half_b - sqrtd) / a;
-
+        
+        let mut root = (-half_b - sqrtd) / a;
         if root < t_min || t_max < root {
-            let root = (-half_b + sqrtd) / a;
+            root = (-half_b + sqrtd) / a;
             if root < t_min || t_max < root {
                 return false;
             }
@@ -47,5 +47,46 @@ impl Hittable for Sphere {
 
         rec.set_material(self.material);
         return true;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sphere1() {
+        let mut rec = HitRecord::default();
+        let r = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, 1.0));
+        let sphere = Sphere::new(Vec3::origin(), 5.0, Material::Lambertian { albedo: Vec3::origin() });
+        
+        let did_hit = sphere.hit(&r, 0.001, 10000.0, &mut rec);
+        
+        assert_eq!(did_hit, true);
+
+    }
+
+    #[test]
+    fn sphere2() {
+        let mut rec = HitRecord::default();
+        let r = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, 1.0));
+        let sphere = Sphere::new(Vec3::origin(), 5.0, Material::Lambertian { albedo: Vec3::origin() });
+        
+        sphere.hit(&r, 0.001, 10000.0, &mut rec);
+
+        assert_eq!(rec.front_face, false);
+
+    }
+
+    #[test]
+    fn sphere3() {
+        let mut rec = HitRecord::default();
+        let r = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, 1.0));
+        let sphere = Sphere::new(Vec3::new(0.0, 0.0, 10.0), 5.0, Material::Lambertian { albedo: Vec3::origin() });
+        
+        sphere.hit(&r, 0.001, 10000.0, &mut rec);
+
+        assert_eq!(rec.front_face, true);
+
     }
 }

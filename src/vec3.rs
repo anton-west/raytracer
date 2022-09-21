@@ -207,6 +207,14 @@ pub fn reflect(vec_incoming: Vec3, normal: Vec3) -> Vec3 {
     vec_incoming - 2.0 * dot(vec_incoming, normal)*normal
 }
 
+pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
+    let cos_theta = dot(-uv, n).min(1.0);
+    let r_out_perp = etai_over_etat * (uv + cos_theta*n);
+    let r_out_parallel = -((1.0 - r_out_perp.length_squared()).abs().sqrt()) * n;
+
+    r_out_perp + r_out_parallel
+}
+
 ///////////////////
 // tests go here //
 ///////////////////
@@ -284,6 +292,14 @@ mod tests {
     }
 
     #[test]
+    fn dot3() {
+        let a = Vec3(0.0, 1.0, 3.0);
+        let b = Vec3(-1.0, 0.0, -2.0);
+        let result = dot(a,b);
+        assert_eq!(result < 0.0, true);
+    }
+
+    #[test]
     fn cross1() {
         let a = Vec3(1.0, 0.0, 0.0);
         let b = Vec3(0.0, 1.0, 0.0);
@@ -327,6 +343,22 @@ mod tests {
         let result = unit_vector(a);
         let div = f64::sqrt(29.0);
         assert_eq!(result, Vec3(2.0 / div, 3.0 / div, 4.0 / div))
+    }
+
+    #[test]
+    fn refract1() {
+        let v_in = Vec3(1.0, 1.0, 10.0);
+        let n = Vec3(0.0, 0.0, -1.0);
+        let result = refract(v_in, n, 0.5);
+        assert_eq!(result.0, 0.5);
+    }
+
+    #[test]
+    fn refract2() {
+        let v_in = Vec3(1.0, 2.0, 10.0);
+        let n = Vec3(0.0, 0.0, -1.0);
+        let result = refract(v_in, n, 0.5);
+        assert_eq!(result.1, 1.0);
     }
 
     #[test]

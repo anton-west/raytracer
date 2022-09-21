@@ -22,8 +22,8 @@ impl HitRecord {
             point: Vec3::new(0.0, 0.0, 0.0),
             normal: Vec3::new(0.0, 0.0, 0.0),
             t: 0.0,
-            front_face: true,
-            material: Material::Lambertian { albedo: Color::origin() },
+            front_face: false,
+            material: Material::Lambertian { albedo: Color::BLACK },
         }
     }
     
@@ -57,5 +57,33 @@ impl HitRecord {
     }
     pub fn set_material(&mut self, val: Material) -> () {
         self.material = val
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    
+    #[test]
+    fn set_face_normal1() {
+        let mut rec = HitRecord::default();
+        let ray = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, 1.0));
+        let outward_normal = Vec3::new(0.0, 0.0, -1.0);
+        
+        rec.set_face_normal(&ray, outward_normal);
+        
+        assert_eq!(rec.front_face, true);
+    }
+
+    #[test]
+    fn set_face_normal2() {
+        let mut rec = HitRecord::default();
+        let ray = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, -1.0));
+        let outward_normal = Vec3::new(0.0, 0.0, -1.0);
+        
+        rec.set_face_normal(&ray, outward_normal);
+        
+        assert_eq!(rec.front_face, false);
     }
 }
