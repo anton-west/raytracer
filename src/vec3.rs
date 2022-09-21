@@ -87,6 +87,7 @@ impl Color {
     pub const MAGENTA: Vec3 = Vec3(1.0, 0.0, 1.0);
     pub const BLACK: Vec3 = Vec3(0.0, 0.0, 0.0);
     pub const WHITE: Vec3 = Vec3(1.0, 1.0, 1.0);
+    pub const GRAY: Vec3 = Vec3(0.5, 0.5, 0.5);
 }
 
 impl ops::Neg for Vec3{

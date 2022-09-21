@@ -11,7 +11,9 @@ pub enum Material {
         albedo: Color,
         fuzz: f64,
     },
-    Dielectric { index_of_refraction: f64, },
+    Dielectric { 
+        albedo: Color,
+        index_of_refraction: f64, },
 }
 
 pub fn scatter(
@@ -42,7 +44,7 @@ pub fn scatter(
 
             dot(r_scattered.direction, rec.normal) > 0.0
         }
-        &Material::Dielectric { index_of_refraction } => {
+        &Material::Dielectric { albedo, index_of_refraction } => {
 
             let refraction_ratio = if rec.front_face {1.0 / index_of_refraction} else {index_of_refraction};
             let unit_dir = unit_vector(r_in.direction);
@@ -53,12 +55,12 @@ pub fn scatter(
             let cannot_refract = refraction_ratio*sin_theta > 1.0; 
             if cannot_refract || reflectance(cos_theta, refraction_ratio) > random_f64() {
                 let reflected = reflect(unit_dir, rec.normal);
-                *attenuation = Color::new(1.0, 1.0, 1.0);
+                *attenuation = albedo;
                 *r_scattered = Ray::new(rec.point(), reflected);
                 return true
             } else {
                 let refracted = refract(unit_dir, unit_vector(rec.normal), refraction_ratio);
-                *attenuation = Color::new(1.0, 1.0, 1.0);
+                *attenuation = albedo;
                 *r_scattered = Ray::new(rec.point(), refracted);
                 return true
             }
