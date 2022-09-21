@@ -1,5 +1,5 @@
 use std::ops;
-use raytracer::clamp;
+use raytracer::{clamp, random_f64, random_in_range};
 
 #[derive(Debug, Copy, Clone)]
 pub struct Vec3(pub f64, pub f64, pub f64);
@@ -27,7 +27,19 @@ impl Vec3 {
     pub fn origin() -> Point3 {
         Vec3(0.0, 0.0, 0.0)
     }
-    
+
+    pub fn random() -> Vec3 {
+        Vec3(random_f64(), random_f64(), random_f64())
+    }
+
+    pub fn random_in_range(min: f64, max: f64) -> Vec3 {
+        Vec3(
+            random_in_range(min, max),
+            random_in_range(min, max),
+            random_in_range(min, max),
+        )
+    }
+
     pub fn get_components(&self) -> (f64, f64, f64) {
         (self.0, self.1 , self.2)
     }
@@ -47,6 +59,19 @@ impl Vec3 {
 
         x*x + y*y + z*z
     }
+
+    pub fn random_in_unit_sphere() -> Vec3 {
+        let mut p = Vec3::random_in_range(-1.0, 1.0);
+        while p.length_squared() >= 1.0 {
+            p = Vec3::random_in_range(-1.0, 1.0);
+        }
+        return p
+    }
+
+    pub fn random_unit_vector() -> Vec3 {
+        unit_vector(Vec3::random_in_unit_sphere())
+    }
+
 }
 
 impl ops::Neg for Vec3{
@@ -144,16 +169,16 @@ pub fn unit_vector(vector: Vec3) -> Vec3 {
     vector / vector.length()
 }
 
-pub fn color_to_string(color: Color, samples_per_pixel: u32) -> String{
+pub fn color_to_string(color: Color, gamma: f64, samples_per_pixel: u32) -> String{
     let x = color.0;
     let y = color.1;
     let z = color.2;
 
     let scale = 1.0 / (samples_per_pixel as f64);
 
-    let r = x * scale;
-    let g = y * scale;
-    let b = z * scale;
+    let r = (x * scale).powf(1.0/gamma);
+    let g = (y * scale).powf(1.0/gamma);
+    let b = (z * scale).powf(1.0/gamma);
 
     let r = (256.0 * clamp(r, 0.0, 0.999)) as u8;
     let g = (256.0 * clamp(g, 0.0, 0.999)) as u8;
@@ -287,21 +312,21 @@ mod tests {
     #[test]
     fn write_color1() {
         let a: Color = Vec3(0.5, 0.5 , 0.5);
-        let result = color_to_string(a, 1);
+        let result = color_to_string(a, 1.0, 1);
         assert_eq!(result, String::from("128 128 128"))
     }
 
     #[test]
     fn write_color2() {
         let a: Color = Vec3(0.5, -1.0 , 3.0);
-        let result = color_to_string(a, 1);
+        let result = color_to_string(a, 1.0, 1);
         assert_eq!(result, String::from("128 0 255"))
     }
 
     #[test]
     fn write_color3() {
         let a: Color = Vec3(1.0, 1.0 , 1.0);
-        let result = color_to_string(a, 1);
+        let result = color_to_string(a, 1.0, 1);
         assert_eq!(result, String::from("255 255 255"))
     }
 
@@ -311,7 +336,7 @@ mod tests {
         let b: Color = Vec3(1.0, 1.0 , 0.0);
         let c: Color = Vec3(1.0, 0.0 , 0.0);
         let final_res = a + b + c;
-        let result = color_to_string(final_res, 3);
-        assert_eq!(result, String::from("255 170 85"))
+        let result = color_to_string(final_res, 2.0, 3);
+        assert_eq!(result, String::from("255 209 147"))
     }
 }
