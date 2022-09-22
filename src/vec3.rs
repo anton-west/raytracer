@@ -176,7 +176,7 @@ pub fn dot(a: Vec3, b: Vec3) -> f64 {
 
 pub fn cross(a: Vec3, b: Vec3) -> Vec3 {
     let i = a.1*b.2 - a.2*b.1;
-    let j = a.0*b.2 - a.2*b.0;
+    let j = a.2*b.0 - a.0*b.2;
     let k = a.0*b.1 - a.1*b.0;
 
     Vec3(i,j,k)
@@ -314,6 +314,14 @@ mod tests {
         let b = Vec3(0.0, 1.0, 0.0);
         let result = cross(b,a);
         assert_eq!(result, Vec3(0.0, 0.0, -1.0))
+    }
+
+    #[test]
+    fn cross3() {
+        let a = Vec3(1.0, 2.0, 3.0);
+        let b = Vec3(0.5, 4.0, -2.0);
+        let result = cross(a,b);
+        assert_eq!(result, Vec3(-16.0, 3.5, 3.0))
     }
 
     #[test]

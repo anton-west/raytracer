@@ -1,13 +1,16 @@
+use raytracer::deg_to_rad;
+
 use crate::{ASPECT_RATIO};
-use crate::vec3::{Vec3, Point3};
+use crate::vec3::{Vec3, Point3, unit_vector, cross};
 use crate::ray::Ray;
 
 pub struct Camera {
+    vfov: f64,
+
     aspect_ratio: f64,
 
     viewport_height: f64,
     viewport_width: f64,
-    focal_length: f64,
     
     origin: Point3,
     horizontal: Vec3,
@@ -17,21 +20,60 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn default() -> Camera {
-        let aspect_ratio = ASPECT_RATIO;
-        let viewport_height =  2.0;
-        let viewport_width = ASPECT_RATIO * viewport_height;
-        let focal_length = 1.0;
-        let origin = Point3::origin();
-        let horizontal = Vec3::new(viewport_width, 0.0, 0.0);
-        let vertical = Vec3::new(0.0, viewport_height, 0.0);
-        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0.0, 0.0, focal_length);
+    pub fn new(look_from: Vec3, look_at: Vec3, vup: Vec3, vfov: f64, aspect_ratio: f64) -> Camera {
+
+        let vfov = deg_to_rad(vfov);
+        let h = (vfov/2.0).tan();
+        let aspect_ratio = aspect_ratio;
+        let viewport_height =  2.0 * h;
+        let viewport_width = aspect_ratio * viewport_height;
+
+        let w = unit_vector(look_from - look_at);
+        let u = unit_vector(cross(vup, w));
+        let v = cross(w, u);
+
+        let origin = look_from;
+        let horizontal = viewport_width * u;
+        let vertical = viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
 
         Camera {
+            vfov,
             aspect_ratio,
             viewport_height,
             viewport_width,
-            focal_length,
+            origin,
+            horizontal,
+            vertical,
+            lower_left_corner
+        }
+    }
+
+    pub fn default() -> Camera {
+        let vfov = deg_to_rad(90.0);
+        let h = (vfov/2.0).tan();
+        let aspect_ratio = ASPECT_RATIO;
+        let viewport_height =  2.0 * h;
+        let viewport_width = aspect_ratio * viewport_height;
+        
+        let look_from = Vec3::origin();
+        let look_at = Vec3::new(0.0, 0.0, -1.0);
+        let vup = Vec3::new(0.0, 1.0, 0.0);
+
+        let w = unit_vector(look_from- look_at);
+        let u = unit_vector(cross(vup, w));
+        let v = cross(w, u);
+
+        let origin = look_from;
+        let horizontal = viewport_width * u;
+        let vertical = viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
+
+        Camera {
+            vfov,
+            aspect_ratio,
+            viewport_height,
+            viewport_width,
             origin,
             horizontal,
             vertical,
