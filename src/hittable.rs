@@ -28,6 +28,7 @@ impl HitRecord {
     }
     
     //getters
+    /*
     pub fn point(&self) -> Point3 {
         self.point
     }
@@ -40,8 +41,9 @@ impl HitRecord {
     pub fn material(&self) -> Material {
         self.material
     }
-
+     */
     //setters
+    /*
     pub fn set_point(&mut self, val: Point3) -> () {
         self.point = val
     }
@@ -51,12 +53,13 @@ impl HitRecord {
     pub fn set_t(&mut self, val: f64) -> () {
         self.t = val
     }
+    pub fn set_material(&mut self, val: Material) -> () {
+        self.material = val
+    }
+     */
     pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: Vec3) -> () {
         self.front_face = dot(ray.direction, outward_normal) < 0.0;
         self.normal = if self.front_face {outward_normal} else {- outward_normal};
-    }
-    pub fn set_material(&mut self, val: Material) -> () {
-        self.material = val
     }
 }
 

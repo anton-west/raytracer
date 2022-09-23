@@ -39,13 +39,13 @@ impl Hittable for Sphere {
             }
         }
         
-        rec.set_t(root);
-        rec.set_point(r.at(rec.t()));
+        rec.t = root;
+        rec.point = r.at(rec.t);
+        rec.material = self.material;
+        let outward_normal = (rec.point - self.center) / self.radius;
         
-        let outward_normal = (rec.point() - self.center) / self.radius;
         rec.set_face_normal(r, outward_normal);
 
-        rec.set_material(self.material);
         return true;
     }
 }

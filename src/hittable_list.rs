@@ -21,12 +21,12 @@ impl Hittable for HittableList {
         for object in &self.list {
             if object.hit(r, t_min, closest_so_far, &mut temp_rec) {
                 hit_anything = true;
-                closest_so_far = temp_rec.t();
-                rec.set_t(closest_so_far);
-                rec.set_point(temp_rec.point());
-                rec.set_normal(temp_rec.normal());
+                closest_so_far = temp_rec.t;
+                rec.t = closest_so_far;
+                rec.point = temp_rec.point;
+                rec.normal = temp_rec.normal;
                 rec.front_face = temp_rec.front_face;
-                rec.set_material(temp_rec.material());
+                rec.material = temp_rec.material;
             }
         }
         hit_anything

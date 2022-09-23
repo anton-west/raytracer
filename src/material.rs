@@ -37,9 +37,9 @@ pub fn scatter(
             true
         }
         &Material::Metallic { albedo, fuzz} => {
-            let reflected = reflect(unit_vector(r_in.direction), rec.normal());
+            let reflected = reflect(unit_vector(r_in.direction), rec.normal);
             let reflected = reflected + clamp(fuzz,0.0,1.0) * Vec3::random_in_unit_sphere();
-            *r_scattered = Ray::new(rec.point(), reflected);
+            *r_scattered = Ray::new(rec.point, reflected);
             *attenuation = albedo;
 
             dot(r_scattered.direction, rec.normal) > 0.0
@@ -56,12 +56,12 @@ pub fn scatter(
             if cannot_refract || reflectance(cos_theta, refraction_ratio) > random_f64() {
                 let reflected = reflect(unit_dir, rec.normal);
                 *attenuation = albedo;
-                *r_scattered = Ray::new(rec.point(), reflected);
+                *r_scattered = Ray::new(rec.point, reflected);
                 return true
             } else {
                 let refracted = refract(unit_dir, unit_vector(rec.normal), refraction_ratio);
                 *attenuation = albedo;
-                *r_scattered = Ray::new(rec.point(), refracted);
+                *r_scattered = Ray::new(rec.point, refracted);
                 return true
             }
         }

@@ -23,8 +23,8 @@ pub const OUTPUT_FILENAME: &str = "image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
 pub const IMAGE_HEIGHT: u32 = 256;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
-pub const SAMPLES_PER_PIXEL: u32 = 5;
-pub const MAX_DEPTH: u32 = 6;
+pub const SAMPLES_PER_PIXEL: u32 =10;
+pub const MAX_DEPTH: u32 = 3;
 
 //returns a color if ray r hits anything in world, otherwise returns sky color
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
@@ -65,7 +65,7 @@ fn main() {
     let material_right = Material::Dielectric { index_of_refraction: (1.5), albedo: Color::new(0.8, 0.90, 0.81) };
     let material_center = Material::Lambertian { albedo: Color::new(0.8, 0.2, 0.1) };
     let material_behind = Material::Lambertian { albedo: Color::new(0.1, 0.2, 0.8) };
-    let material_pink_glass = Material::Dielectric { index_of_refraction: 2.4, albedo: Color::new(0.95, 0.16, 0.62) };
+    let material_pink_glass = Material::Dielectric { index_of_refraction: 2.4, albedo: Color::new(0.99, 0.3, 0.8) };
     //add spheres to list
     list.push( Box::new( Sphere::new(Point3::new( 0.0, -100.5, -1.0), 100.0, material_ground ) ) );
     list.push( Box::new( Sphere::new(Point3::new( 0.0, 0.0,    -1.0), 0.5,   material_center ) ) );
@@ -80,8 +80,8 @@ fn main() {
     //camera
     let look_from = Point3::new(2.0,2.0,1.0);
     let look_at = Point3::new(0.0,0.0,-1.0);
-    let vup = Vec3::new(0.0,1.0,0.0);
-    let vfov = 90.0;
+    let vup = Vec3::new(-1.0,0.5,0.0);
+    let vfov = 40.0;
     let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO);
 
     //rendering
