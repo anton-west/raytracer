@@ -16,7 +16,7 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool {
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
 
         let oc: Vec3 = r.origin - self.center;
         let a = r.direction.length_squared();
@@ -26,7 +26,7 @@ impl Hittable for Sphere {
         let discriminant = half_b * half_b - a * c;
 
         if discriminant < 0.0 {
-            return false;   //no hit
+            return None;   //no hit
         }
         
         let sqrtd = discriminant.sqrt();
@@ -35,18 +35,19 @@ impl Hittable for Sphere {
         if root < t_min || t_max < root {
             root = (-half_b + sqrtd) / a;
             if root < t_min || t_max < root {
-                return false;
+                return None;
             }
         }
         
-        rec.t = root;
-        rec.point = r.at(rec.t);
-        rec.material = self.material;
-        let outward_normal = (rec.point - self.center) / self.radius;
-        
-        rec.set_face_normal(r, outward_normal);
+        let mut ret_rec = HitRecord::default();
+        ret_rec.t = root;
+        ret_rec.point = r.at(ret_rec.t);
+        ret_rec.material = self.material;
 
-        return true;
+        let outward_normal = (ret_rec.point - self.center) / self.radius;
+        ret_rec.set_face_normal(r, outward_normal);
+
+        return Some(ret_rec);
     }
 }
 
@@ -56,37 +57,34 @@ mod tests {
 
     #[test]
     fn sphere1() {
-        let mut rec = HitRecord::default();
         let r = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, 1.0));
         let sphere = Sphere::new(Vec3::origin(), 5.0, Material::Lambertian { albedo: Vec3::origin() });
         
-        let did_hit = sphere.hit(&r, 0.001, 10000.0, &mut rec);
+        let did_hit = sphere.hit(&r, 0.001, 10000.0);
         
-        assert_eq!(did_hit, true);
+        assert_eq!(did_hit.is_some(), true);
 
     }
 
     #[test]
     fn sphere2() {
-        let mut rec = HitRecord::default();
         let r = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, 1.0));
         let sphere = Sphere::new(Vec3::origin(), 5.0, Material::Lambertian { albedo: Vec3::origin() });
         
-        sphere.hit(&r, 0.001, 10000.0, &mut rec);
+        let op_rec = sphere.hit(&r, 0.001, 10000.0);
 
-        assert_eq!(rec.front_face, false);
+        assert_eq!(op_rec.expect("Should not be none!").front_face, false);
 
     }
 
     #[test]
     fn sphere3() {
-        let mut rec = HitRecord::default();
         let r = Ray::new(Vec3::origin(), Vec3::new(0.0, 0.0, 1.0));
         let sphere = Sphere::new(Vec3::new(0.0, 0.0, 10.0), 5.0, Material::Lambertian { albedo: Vec3::origin() });
         
-        sphere.hit(&r, 0.001, 10000.0, &mut rec);
+        let op_rec = sphere.hit(&r, 0.001, 10000.0);
 
-        assert_eq!(rec.front_face, true);
+        assert_eq!(op_rec.expect("Should not be none!").front_face, true);
 
     }
 }

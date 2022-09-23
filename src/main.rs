@@ -29,27 +29,31 @@ pub const MAX_DEPTH: u32 = 3;
 //returns a color if ray r hits anything in world, otherwise returns sky color
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
 
-    let mut rec = HitRecord::default();
-
     //handle recursion base case, i.e. depth is 0, no more reflections for rays
     if depth <= 0 {return Color::BLACK;}     //TODO: make color constants
 
-    if world.hit(r, 0.001, INFINITY, &mut rec) {
-        let mut r_scattered = Ray::new(Vec3::origin(), Vec3::origin());
-        let mut attenuation = Color::BLACK;
+    let op_rec = world.hit(r, 0.001, INFINITY);
+    match op_rec {
+        Some(rec) => {
+            let mut r_scattered = Ray::new(Vec3::origin(), Vec3::origin());
+            let mut attenuation = Color::BLACK;
 
-        if scatter(&rec.material, r, &rec, &mut attenuation, &mut r_scattered) {
-            return attenuation * ray_color(&r_scattered, world, depth-1)
-        } else {
-            return Color::BLACK
+            if scatter(&rec.material, r, &rec, &mut attenuation, &mut r_scattered) {
+                eprintln!("{:?}", rec.material);
+                return attenuation * ray_color(&r_scattered, world, depth-1)
+            } else {
+                return Color::BLACK
+            }
         }
-    } else {
-        //no hit for ray, get sky color and return it
-        let unit_direction = unit_vector(r.direction);
-        let t = 0.5 * (unit_direction.y() + 1.0);
+        
+        None => {
+            //no hit for ray, get sky color and return it
+            let unit_direction = unit_vector(r.direction);
+            let t = 0.5 * (unit_direction.y() + 1.0);
 
-        return (1.0 - t) * Color::new(1.0, 1.0 , 1.0) + t * Color::new(0.5, 0.7, 1.0)
-    }
+            return (1.0 - t) * Color::new(1.0, 1.0 , 1.0) + t * Color::new(0.5, 0.7, 1.0)    
+        }
+    } 
 }
 
 
