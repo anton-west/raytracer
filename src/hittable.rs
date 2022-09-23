@@ -2,7 +2,7 @@ use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{Vec3, Point3, dot, Color};
 pub trait Hittable {
-    fn hit(&self, r: &Ray, t_min: f64, t_max: f64, rec: &mut HitRecord) -> bool;
+    fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
 
 pub struct HitRecord {
