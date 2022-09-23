@@ -23,7 +23,7 @@ impl HitRecord {
             normal: Vec3::new(0.0, 0.0, 0.0),
             t: 0.0,
             front_face: false,
-            material: Material::Lambertian { albedo: Color::BLACK },
+            material: Material::Lambertian { albedo: Color::YELLOW },
         }
     }
     
