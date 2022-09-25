@@ -6,6 +6,9 @@ use crate::ray::Ray;
 
 pub struct Camera {
     vfov: f64,
+    
+    aperture: f64,
+    focus_dist: f64,
 
     aspect_ratio: f64,
 
@@ -20,7 +23,7 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(look_from: Vec3, look_at: Vec3, vup: Vec3, vfov: f64, aspect_ratio: f64) -> Camera {
+    pub fn new(look_from: Vec3, look_at: Vec3, vup: Vec3, vfov: f64, aspect_ratio: f64, aperture: f64, focus_dist: f64) -> Camera {
 
         let vfov = deg_to_rad(vfov);
         let h = (vfov/2.0).tan();
@@ -33,12 +36,14 @@ impl Camera {
         let v = cross(w, u);
 
         let origin = look_from;
-        let horizontal = viewport_width * u;
-        let vertical = viewport_height * v;
-        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
+        let horizontal = focus_dist * viewport_width * u;
+        let vertical = focus_dist * viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - focus_dist * w;
 
         Camera {
             vfov,
+            aperture,
+            focus_dist,
             aspect_ratio,
             viewport_height,
             viewport_width,
@@ -69,8 +74,13 @@ impl Camera {
         let vertical = viewport_height * v;
         let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
 
+        let focus_dist = 1.0;
+        let aperture = 2.0;
+
         Camera {
             vfov,
+            aperture,
+            focus_dist,
             aspect_ratio,
             viewport_height,
             viewport_width,
@@ -82,9 +92,11 @@ impl Camera {
     }
 
     pub fn get_ray(&self, u: f64, v: f64) -> Ray {
+        let rd = (self.aperture/2.0) * Vec3::random_in_unit_disk();
+        let offset = Vec3::new(u + rd.x(), v + rd.y(), 0.0);
         Ray { 
-            origin: self.origin,
-            direction: self.lower_left_corner + self.horizontal*u + self.vertical*v - self.origin
+            origin: self.origin + offset,
+            direction: self.lower_left_corner + self.horizontal*u + self.vertical*v - self.origin - offset
         }
     }
 }

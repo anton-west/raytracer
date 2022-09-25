@@ -86,7 +86,9 @@ fn main() {
     let look_at = Point3::new(0.0,0.0,-1.0);
     let vup = Vec3::new(-1.0,0.5,0.0);
     let vfov = 40.0;
-    let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO);
+    let aperture = 10.0;
+    let focus_dist = (look_from - look_at).length();
+    let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO, aperture, focus_dist);
 
     //rendering
 

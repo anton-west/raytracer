@@ -68,6 +68,14 @@ impl Vec3 {
         return p
     }
 
+    pub fn random_in_unit_disk() -> Vec3 {
+        let mut p = Vec3::new(random_in_range(-1.0, 1.0), random_in_range(-1.0, 1.0), 0.0);
+        while p.length_squared() >= 1.0 {
+            p = Vec3::new(random_in_range(-1.0, 1.0), random_in_range(-1.0, 1.0), 0.0);
+        }
+        return p
+    }
+
     pub fn random_unit_vector() -> Vec3 {
         unit_vector(Vec3::random_in_unit_sphere())
     }
