@@ -39,20 +39,21 @@ fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
             let mut attenuation = Color::BLUE;
 
             if scatter(&rec.material, r, &rec, &mut attenuation, &mut r_scattered) {
-                //eprintln!("{:?}", rec.material);
                 return attenuation * ray_color(&r_scattered, world, depth-1)
             } else {
                 return Color::GREEN
             }
         }
         
-        None => (),
-    }
-     //no hit for ray, get sky color and return it
-     let unit_direction = unit_vector(r.direction);
-     let t = 0.5 * (unit_direction.y() + 1.0);
+        None => {
+            //no hit for ray, get sky color and return it
+            let unit_direction = unit_vector(r.direction);
+            let t = 0.5 * (unit_direction.y() + 1.0);
 
-     return (1.0 - t) * Color::new(1.0, 1.0 , 1.0) + t * Color::new(0.5, 0.7, 1.0)    
+            return (1.0 - t) * Color::new(1.0, 1.0 , 1.0) + t * Color::new(0.5, 0.7, 1.0)    
+        }
+    }
+     
 }
 
 

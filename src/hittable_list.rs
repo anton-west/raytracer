@@ -14,22 +14,21 @@ impl HittableList {
 
 impl Hittable for HittableList {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let mut ret_rec = HitRecord::default();
+        let mut ret_rec = None;
         let mut closest_so_far = t_max;
         
         for object in &self.list {
             let op_rec = object.hit(r, t_min, closest_so_far);
             match op_rec {
-                
                 Some(rec) => {
                     closest_so_far = rec.t;
-                    ret_rec = rec;
+                    ret_rec = Some(rec);
                 },
 
                 None => (),
             }
         }
 
-        return Some(ret_rec);
+        return ret_rec;
     }
 }
