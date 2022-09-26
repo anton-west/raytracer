@@ -62,7 +62,7 @@ fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
 fn main() {
 
     //world
-    let mut list: Vec<Box<dyn Hittable>> = Vec::new();
+    let mut list: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
     //define some materials
     let material_ground = Material::Lambertian { albedo: Color::new(0.7,0.8,0.3) };
@@ -113,27 +113,47 @@ fn main() {
     //start timer here to measure rendering time
     let now = std::time::Instant::now();
 
+    let image_array:Vec<Vec<String>> = Vec::with_capacity(IMAGE_HEIGHT as usize);
+
     for j in (0..IMAGE_HEIGHT).rev() {
 
+        /*
         let progress = (1.0 - j as f64 / IMAGE_HEIGHT as f64) * 100.0;
         if j % 4 == 0 {eprintln!("progress: {:.2}%", progress)};
+         */
 
-        for i in 0..IMAGE_WIDTH {
+        //new thread for every line in image
+        thread::spawn(|| {
+
+            for i in 0..IMAGE_WIDTH {
             
-            let mut pixel_color = Color::new(0.0, 0.0, 0.0);
+                let mut pixel_color = Color::new(0.0, 0.0, 0.0);
 
-            for _ in 0..SAMPLES_PER_PIXEL {
-                let u = (i as f64 + random_f64()) / (IMAGE_WIDTH-1) as f64;
-                let v  = (j as f64 + random_f64()) / (IMAGE_HEIGHT-1) as f64;
+                for _ in 0..SAMPLES_PER_PIXEL {
+                    let u = (i as f64 + random_f64()) / (IMAGE_WIDTH-1) as f64;
+                    let v  = (j as f64 + random_f64()) / (IMAGE_HEIGHT-1) as f64;
 
-                let r = camera.get_ray(u, v);
-            
-                pixel_color += ray_color(&r, &world, MAX_DEPTH);
+                    let r = camera.get_ray(u, v);
+                
+                    pixel_color += ray_color(&r, &world, MAX_DEPTH);
+                }
+
+                let color_string = vec3::color_to_string(pixel_color, 2.0, SAMPLES_PER_PIXEL);
+                let color_string = format!("{color_string}\n");
+                match output_file.write_all(color_string) {
+                    Err(why) => panic!("couldn't write to {}: {}", display, why),
+                    Ok(_) => (),
+                }
+                image_array[j as usize].push(color_string)
             }
 
-            let color_string = vec3::color_to_string(pixel_color, 2.0, SAMPLES_PER_PIXEL);
+        });
+    }
+    for j in (0..IMAGE_HEIGHT).rev() {
+        for i in 0..IMAGE_WIDTH {
+            let color_string = image_array[j as usize][i as usize];
             let color_string = format!("{color_string}\n");
-            match output_file.write_all(color_string.as_bytes()) {
+            match output_file.write_all(color_string) {
                 Err(why) => panic!("couldn't write to {}: {}", display, why),
                 Ok(_) => (),
             }

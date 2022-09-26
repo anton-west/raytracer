@@ -3,11 +3,11 @@ use crate::ray::Ray;
 
 
 pub struct HittableList {
-    pub list: Vec<Box<dyn Hittable>>,
+    pub list: Vec<Box<dyn Hittable + Send + Sync>>,
 }
 
 impl HittableList {
-    pub fn new(list: Vec<Box<dyn Hittable>>) -> HittableList {
+    pub fn new(list: Vec<Box<dyn Hittable + Send + Sync>>) -> HittableList {
         HittableList { list }
     }
 }
