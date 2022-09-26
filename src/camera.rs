@@ -61,6 +61,9 @@ impl Camera {
         let viewport_height =  2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
         
+        let focus_dist = 1.0;
+        let aperture = 2.0;
+
         let look_from = Vec3::origin();
         let look_at = Vec3::new(0.0, 0.0, -1.0);
         let vup = Vec3::new(0.0, 1.0, 0.0);
@@ -70,12 +73,9 @@ impl Camera {
         let v = cross(w, u);
 
         let origin = look_from;
-        let horizontal = viewport_width * u;
-        let vertical = viewport_height * v;
-        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
-
-        let focus_dist = 1.0;
-        let aperture = 2.0;
+        let horizontal = focus_dist * viewport_width * u;
+        let vertical = focus_dist * viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - focus_dist * w;
 
         Camera {
             vfov,
@@ -93,7 +93,9 @@ impl Camera {
 
     pub fn get_ray(&self, u: f64, v: f64) -> Ray {
         let rd = (self.aperture/2.0) * Vec3::random_in_unit_disk();
-        let offset = Vec3::new(u + rd.x(), v + rd.y(), 0.0);
+        let uu = unit_vector(self.horizontal);
+        let vv = unit_vector(self.vertical);
+        let offset = uu * rd.x() + vv * rd.y();
         Ray { 
             origin: self.origin + offset,
             direction: self.lower_left_corner + self.horizontal*u + self.vertical*v - self.origin - offset

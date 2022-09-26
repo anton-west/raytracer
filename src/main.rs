@@ -21,9 +21,9 @@ use std::io::Write;
 
 pub const OUTPUT_FILENAME: &str = "image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
-pub const IMAGE_HEIGHT: u32 = 256;
+pub const IMAGE_HEIGHT: u32 = 1024;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
-pub const SAMPLES_PER_PIXEL: u32 =10;
+pub const SAMPLES_PER_PIXEL: u32 =50;
 pub const MAX_DEPTH: u32 = 10;
 
 //returns a color if ray r hits anything in world, otherwise returns sky color
@@ -82,12 +82,12 @@ fn main() {
     let world: HittableList = HittableList::new(list);
 
     //camera
-    let look_from = Point3::new(2.0,2.0,1.0);
+    let look_from = Point3::new(0.0,0.0,0.0);
     let look_at = Point3::new(0.0,0.0,-1.0);
-    let vup = Vec3::new(-1.0,0.5,0.0);
-    let vfov = 40.0;
-    let aperture = 10.0;
-    let focus_dist = (look_from - look_at).length();
+    let vup = Vec3::new(0.0,1.0,0.0);
+    let vfov = 90.0;
+    let aperture = 0.05;
+    let focus_dist = 1.0;
     let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO, aperture, focus_dist);
 
     //rendering
