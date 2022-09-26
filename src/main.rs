@@ -15,6 +15,8 @@ use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::camera::Camera;
 
+use std::thread;
+
 use std::fs::File;
 use std::path::Path;
 use std::io::Write;
