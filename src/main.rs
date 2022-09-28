@@ -24,11 +24,11 @@ use std::io::Write;
 
 pub const OUTPUT_FILENAME: &str = "image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
-pub const IMAGE_HEIGHT: u32 = 512;
+pub const IMAGE_HEIGHT: u32 = 502;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
-pub const SAMPLES_PER_PIXEL: u32 = 10;
+pub const SAMPLES_PER_PIXEL: u32 = 50;
 pub const MAX_DEPTH: u32 = 5;
-pub const THREAD_N: u32 = 8;
+pub const THREAD_N: u32 = 4;
 
 //returns a color if ray r hits anything in world, otherwise returns sky color
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
@@ -86,10 +86,10 @@ fn main() {
     let world = Arc::new(HittableList::new(list));
 
     //camera
-    let look_from = Point3::new(-3.0,0.5,2.0);
+    let look_from = Point3::new(0.0,0.0,0.0);
     let look_at = Point3::new(0.0,0.0,-1.00);
-    let vup = Vec3::new(0.0,1.0,0.0);
-    let vfov = 40.0;
+    let vup = Vec3::new(0.5,0.5,0.0);
+    let vfov = 120.0;
     let aperture = 0.025;
     let focus_dist = (look_from - look_at).length();
     let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO, aperture, focus_dist);
@@ -123,8 +123,10 @@ fn main() {
     
         let arc_world = Arc::clone(&world);
         
+        let remainder = if nth_thread == (THREAD_N-1) {IMAGE_HEIGHT & THREAD_N} else {0};
+
         let start_index = nth_thread * number_of_lines_per_thread;
-        let end_index = (nth_thread + 1) * number_of_lines_per_thread;
+        let end_index = (nth_thread + 1) * number_of_lines_per_thread + remainder;
         
         //new thread for every line in image
         handles.push(thread::spawn(move || {
