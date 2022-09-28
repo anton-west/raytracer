@@ -62,11 +62,11 @@ impl Camera {
         let viewport_height =  2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
         
-        let focus_dist = 1.0;
         let aperture = 2.0;
 
         let look_from = Vec3::origin();
         let look_at = Vec3::new(0.0, 0.0, -1.0);
+        let focus_dist = (look_from - look_at).length();
         let vup = Vec3::new(0.0, 1.0, 0.0);
 
         let w = unit_vector(look_from- look_at);

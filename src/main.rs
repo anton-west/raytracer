@@ -26,9 +26,9 @@ pub const OUTPUT_FILENAME: &str = "image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
 pub const IMAGE_HEIGHT: u32 = 512;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
-pub const SAMPLES_PER_PIXEL: u32 = 50;
-pub const MAX_DEPTH: u32 = 10;
-pub const THREAD_N: u32 = 10;
+pub const SAMPLES_PER_PIXEL: u32 = 10;
+pub const MAX_DEPTH: u32 = 5;
+pub const THREAD_N: u32 = 8;
 
 //returns a color if ray r hits anything in world, otherwise returns sky color
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
@@ -81,17 +81,17 @@ fn main() {
     list.push( Box::new( Sphere::new(Point3::new( 1.0, 0.0,    -1.0), 0.5,   material_right  ) ) );
     list.push( Box::new( Sphere::new(Point3::new( -0.5,1.0,    -1.2), 0.5,   material_up     ) ) );
     list.push( Box::new( Sphere::new(Point3::new( 1.3, 0.5,    -2.5), 0.8,   material_behind ) ) );
-    list.push( Box::new( Sphere::new(Point3::new( -0.18, 0.0,    -0.25), 0.1,   material_pink_glass ) ) );
+    list.push( Box::new( Sphere::new(Point3::new( 0.0, 0.0,    -0.25), 0.1,   material_pink_glass ) ) );
     
     let world = Arc::new(HittableList::new(list));
 
     //camera
-    let look_from = Point3::new(0.0,0.0,0.0);
-    let look_at = Point3::new(0.0,0.0,-1.0);
+    let look_from = Point3::new(-3.0,0.5,2.0);
+    let look_at = Point3::new(0.0,0.0,-1.00);
     let vup = Vec3::new(0.0,1.0,0.0);
-    let vfov = 90.0;
-    let aperture = 0.05;
-    let focus_dist = 1.0;
+    let vfov = 40.0;
+    let aperture = 0.025;
+    let focus_dist = (look_from - look_at).length();
     let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO, aperture, focus_dist);
 
     //rendering
@@ -117,7 +117,7 @@ fn main() {
 
     let number_of_lines_per_thread = IMAGE_HEIGHT / THREAD_N;
     let mut image_array = vec![vec![String::new(); (number_of_lines_per_thread * IMAGE_WIDTH) as usize]; THREAD_N as usize];
-    let mut handles = Vec::with_capacity(IMAGE_HEIGHT as usize);
+    let mut handles = Vec::with_capacity(THREAD_N as usize);
 
     for nth_thread in 0..THREAD_N {
     
