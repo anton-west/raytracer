@@ -26,9 +26,9 @@ pub const OUTPUT_FILENAME: &str = "image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
 pub const IMAGE_HEIGHT: u32 = 502;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
-pub const SAMPLES_PER_PIXEL: u32 = 50;
+pub const SAMPLES_PER_PIXEL: u32 = 25;
 pub const MAX_DEPTH: u32 = 5;
-pub const THREAD_N: u32 = 4;
+pub const THREAD_N: u32 = 8;
 
 //returns a color if ray r hits anything in world, otherwise returns sky color
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
@@ -123,7 +123,7 @@ fn main() {
     
         let arc_world = Arc::clone(&world);
         
-        let remainder = if nth_thread == (THREAD_N-1) {IMAGE_HEIGHT & THREAD_N} else {0};
+        let remainder = if nth_thread == (THREAD_N-1) {IMAGE_HEIGHT % THREAD_N} else {0};
 
         let start_index = nth_thread * number_of_lines_per_thread;
         let end_index = (nth_thread + 1) * number_of_lines_per_thread + remainder;
