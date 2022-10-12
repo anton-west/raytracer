@@ -28,9 +28,9 @@ pub const OUTPUT_FILENAME: &str = "image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
 pub const IMAGE_HEIGHT: u32 = 512;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
-pub const SAMPLES_PER_PIXEL: u32 = 15;
+pub const SAMPLES_PER_PIXEL: u32 = 5;
 pub const MAX_DEPTH: u32 = 5;
-pub const THREAD_N: u32 = 8;
+pub const THREAD_N: u32 = 4;
 
 //returns a color if ray r hits anything in world, otherwise returns sky color
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
@@ -70,32 +70,34 @@ fn main() {
 
     //define some materials
     let material_ground = Material::Lambertian { albedo: Color::new(0.7,0.8,0.3) };
-    let material_up = Material::Metallic { albedo: (Color::new(0.28,0.95,0.55)), fuzz: (0.05) };
-    let material_left = Material::Metallic { albedo: Color::new(0.5, 0.45, 0.75), fuzz: 0.2, };
+    let material_green_metall = Material::Metallic { albedo: (Color::new(0.28,0.95,0.55)), fuzz: (0.0) };
+    let material_blue_metall = Material::Metallic { albedo: Color::new(0.5, 0.45, 0.75), fuzz: 0.2, };
     let material_right = Material::Dielectric { index_of_refraction: (1.5), albedo: Color::new(0.8, 0.90, 0.81) };
     let material_center = Material::Lambertian { albedo: Color::new(0.8, 0.2, 0.1) };
     let material_behind = Material::Lambertian { albedo: Color::new(0.1, 0.2, 0.8) };
     let material_pink_glass = Material::Dielectric { index_of_refraction: 2.4, albedo: Color::new(0.99, 0.3, 0.8) };
     //add spheres to list
-    //list.push( Box::new( Sphere::new(Point3::new( 0.0, -100.5, -1.0), 100.0, material_ground ) ) );
+    
+    list.push( Box::new( Sphere::new(Point3::new( 1.0, 2.5, 10.0), 2.5, material_green_metall ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( 0.0, 0.0,    -1.0), 0.5,   material_center ) ) );
     //list.push( Box::new( Sphere::new(Point3::new(-1.0, 0.0,    -1.0), 0.5,   material_left   ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( 1.0, 0.0,    -1.0), 0.5,   material_right  ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( -0.5,1.0,    -1.2), 0.5,   material_up     ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( 1.3, 0.5,    -2.5), 0.8,   material_behind ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( 0.0, 0.0,    -0.25), 0.1,   material_pink_glass ) ) );
-    list.push( Box::new( Rectangle_xy::new(-1.0, 1.0, 0.1, 0.6, -1.0, material_ground ) ) );
-    list.push( Box::new( Rectangle_yz::new(0.0, 1.0, -1.0, 1.0, 0.0, material_center ) ) );
-    list.push( Box::new( Rectangle_xz::new(-1.0, 1.0, -1.0, 1.0, 0.0, material_center ) ) );
+    //list.push( Box::new( Rectangle_xy::new(-1.0, 1.0, 0.1, 0.6, -1.0, material_ground ) ) );
+    //list.push( Box::new( Rectangle_yz::new(0.0, 1.0, -1.0, 1.0, 0.0, material_center ) ) );
+    
+    list.push( Box::new( Rectangle_xz::new(-100.0, 100.0, -100.0, 100.0, 0.0, material_blue_metall ) ) );
     
     
     let world = Arc::new(HittableList::new(list));
 
     //camera
-    let look_from = Point3::new(1.0,0.5,0.0);
-    let look_at = Point3::new(0.0,0.5,0.0);
+    let look_from = Point3::new(0.0,3.0,0.0);
+    let look_at = Point3::new(0.0,0.0,10.0);
     let vup = Vec3::new(0.0, 1.0,0.0);
-    let vfov = 90.0;
+    let vfov = 60.0;
     let aperture = 0.01;
     let focus_dist = (look_from - look_at).length();
     let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO, aperture, focus_dist);
