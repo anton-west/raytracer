@@ -7,7 +7,8 @@ mod rectangle;
 mod camera;
 mod material;
 
-use raytracer::{INFINITY, random_f64,};
+use rand::{SeedableRng, Rng};
+use raytracer::{INFINITY, random_f64, random_in_range, PI,};
 use hittable::{Hittable};
 use hittable_list::HittableList;
 use crate::material::{Material, scatter};
@@ -18,17 +19,19 @@ use crate::rectangle::{Rectangle_xy, Rectangle_yz, Rectangle_xz};
 use crate::camera::Camera;
 
 use std::sync::Arc;
-use std::thread;
+use std::{thread, env};
 
 use std::fs::File;
 use std::path::Path;
 use std::io::Write;
 
+use rand::rngs::SmallRng;
+
 pub const OUTPUT_FILENAME: &str = "image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
 pub const IMAGE_HEIGHT: u32 = 512;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
-pub const SAMPLES_PER_PIXEL: u32 = 5;
+pub const SAMPLES_PER_PIXEL: u32 = 100;
 pub const MAX_DEPTH: u32 = 5;
 pub const THREAD_N: u32 = 4;
 
@@ -65,6 +68,10 @@ fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
 
 fn main() {
 
+    let args: Vec<String> = env::args().collect();
+    let t = &args[1];
+    let t = t.parse::<f64>().unwrap();
+
     //world
     let mut list: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
@@ -74,12 +81,16 @@ fn main() {
     let material_blue_metall = Material::Metallic { albedo: Color::new(0.5, 0.45, 0.75), fuzz: 0.2, };
     let material_right = Material::Dielectric { index_of_refraction: (1.5), albedo: Color::new(0.8, 0.90, 0.81) };
     let material_center = Material::Lambertian { albedo: Color::new(0.8, 0.2, 0.1) };
-    let material_behind = Material::Lambertian { albedo: Color::new(0.1, 0.2, 0.8) };
+    let material_blue = Material::Lambertian { albedo: Color::new(0.1, 0.2, 0.8) };
     let material_pink_glass = Material::Dielectric { index_of_refraction: 2.4, albedo: Color::new(0.99, 0.3, 0.8) };
     //add spheres to list
     
-    list.push( Box::new( Sphere::new(Point3::new( 1.0, 2.5, 10.0), 2.5, material_green_metall ) ) );
-    //list.push( Box::new( Sphere::new(Point3::new( 0.0, 0.0,    -1.0), 0.5,   material_center ) ) );
+    let offset1 = 1.0 + 1.0 * f64::sin(t / 200.0 * PI * 2.0);
+    let offset2 = 0.5 + 0.5 * f64::sin(t / 200.0 * PI * 2.0 + PI);
+
+    list.push( Box::new( Sphere::new(Point3::new( 1.0, 2.5 + offset1 + 0.2, 10.0), 2.5, material_green_metall ) ) );
+    list.push( Box::new( Sphere::new(Point3::new( -1.5, 2.0 + offset2, 6.0), 1.5, material_pink_glass ) ) );
+    list.push( Box::new( Sphere::new(Point3::new( 15.0, 5.0,    50.0), 5.0,   material_blue ) ) );
     //list.push( Box::new( Sphere::new(Point3::new(-1.0, 0.0,    -1.0), 0.5,   material_left   ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( 1.0, 0.0,    -1.0), 0.5,   material_right  ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( -0.5,1.0,    -1.2), 0.5,   material_up     ) ) );
@@ -90,14 +101,50 @@ fn main() {
     
     list.push( Box::new( Rectangle_xz::new(-100.0, 100.0, -100.0, 100.0, 0.0, material_blue_metall ) ) );
     
+    //generate lots of small random spheres
+
+    let mut rng = SmallRng::seed_from_u64(10);
+
+    for i in -11..11 {
+        for j in -1..21 {
+
+            let x = i as f64 + 0.9 * rng.gen_range(0.0..1.0);
+            let z = j as f64 + 0.9 * rng.gen_range(0.0..1.0);
+            let r = rng.gen_range(0.1..0.2);
+            let y = r;
+
+            let center = Point3::new(x, y, z);
+
+            /*
+            if (center - Point3::new( 1.0, 0.2, 10.0)).length() < 0.9 {
+                break;
+            }
+             */
+            let material: Material;
+
+            let coin_toss = rng.gen_range(0.0..1.0);
+            if coin_toss < 0.33 {
+                material = Material::Metallic { albedo: Color::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0)), fuzz: rng.gen_range(0.0..1.0) }
+            } else if 0.33 <= coin_toss && coin_toss < 0.66 {
+                material = Material::Lambertian { albedo: Color::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0)) }
+            } else {
+                material = Material::Dielectric { albedo: Color::new(rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0), rng.gen_range(0.0..1.0)), index_of_refraction: rng.gen_range(1.0..3.0) }
+            }
+
+           
+            let sphere = Sphere::new(center, r, material);
+            list.push(Box::new(sphere));
+        }
+    }
+ 
     
     let world = Arc::new(HittableList::new(list));
 
     //camera
-    let look_from = Point3::new(0.0,3.0,0.0);
+    let look_from = Point3::new(0.0,5.0,-10.0);
     let look_at = Point3::new(0.0,0.0,10.0);
     let vup = Vec3::new(0.0, 1.0,0.0);
-    let vfov = 60.0;
+    let vfov = 25.0;
     let aperture = 0.01;
     let focus_dist = (look_from - look_at).length();
     let camera = Camera::new(look_from, look_at, vup, vfov, ASPECT_RATIO, aperture, focus_dist);
@@ -106,7 +153,9 @@ fn main() {
 
     //open output file for writing
     //TODO: move file io to own function
-    let path = Path::new(OUTPUT_FILENAME);
+    let str = format!("img/image{}.ppm", t as u32);
+    eprintln!("{str}");
+    let path = Path::new(&str);
     let display = path.display();
     let mut output_file = match File::create(&path) {
         Err(why) => panic!("couldn't create {}: {}", display, why),
