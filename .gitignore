@@ -4,3 +4,5 @@
 *.jpg
 *.jpeg
 /target
+*.sh
+*.ps1
