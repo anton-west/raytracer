@@ -7,14 +7,14 @@ mod rectangle;
 mod camera;
 mod material;
 
-use raytracer::{INFINITY, random_f64,};
-use hittable::{Hittable};
-use hittable_list::HittableList;
+use raytracer::{INFINITY, random_f64};
+use crate::hittable::{Hittable};
+use crate::hittable_list::HittableList;
 use crate::material::{Material, scatter};
 use crate::vec3::{Vec3, Color, Point3, unit_vector,};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
-use crate::rectangle::{Rectangle_xy, Rectangle_yz, Rectangle_xz};
+use crate::rectangle::{RectangleXY, RectangleYZ, RectangleXZ};
 use crate::camera::Camera;
 
 use std::sync::Arc;
@@ -24,7 +24,7 @@ use std::fs::File;
 use std::path::Path;
 use std::io::Write;
 
-pub const OUTPUT_FILENAME: &str = "image.ppm";
+pub const OUTPUT_FILENAME: &str = "img/image.ppm";
 pub const ASPECT_RATIO: f64 = 16.0 / 9.0;
 pub const IMAGE_HEIGHT: u32 = 512;
 pub const IMAGE_WIDTH: u32 = (IMAGE_HEIGHT as f64 * ASPECT_RATIO) as u32;
@@ -32,18 +32,21 @@ pub const SAMPLES_PER_PIXEL: u32 = 5;
 pub const MAX_DEPTH: u32 = 5;
 pub const THREAD_N: u32 = 4;
 
-//returns a color if ray r hits anything in world, otherwise returns sky color
+//returns a color if ray r hits anything in world, otherwise returns sky gradient color
 fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
 
     //handle recursion base case, i.e. depth is 0, no more reflections for rays
-    if depth <= 0 {return Color::BLACK;}     //TODO: make color constants
+    if depth <= 0 {return Color::BLACK;}
 
     let op_rec = world.hit(r, 0.001, INFINITY);
+    
     match op_rec {
+        
         Some(rec) => {
-            let mut r_scattered = Ray::new(Vec3::origin(), Vec3::origin());
+            //create variables to be passed to scatter() to be modified
             let mut attenuation = Color::BLACK;
-
+            let mut r_scattered = Ray::new(Vec3::origin(), Vec3::origin());
+            
             if scatter(&rec.material, r, &rec, &mut attenuation, &mut r_scattered) {
                 return attenuation * ray_color(&r_scattered, world, depth-1)
             } else {
@@ -65,20 +68,21 @@ fn ray_color(r: &Ray, world: &HittableList, depth: u32) -> Color {
 
 fn main() {
 
-    //world
+    //create world item list
     let mut list: Vec<Box<dyn Hittable + Send + Sync>> = Vec::new();
 
     //define some materials
-    let material_ground = Material::Lambertian { albedo: Color::new(0.7,0.8,0.3) };
     let material_green_metall = Material::Metallic { albedo: (Color::new(0.28,0.95,0.55)), fuzz: (0.0) };
     let material_blue_metall = Material::Metallic { albedo: Color::new(0.5, 0.45, 0.75), fuzz: 0.2, };
-    let material_right = Material::Dielectric { index_of_refraction: (1.5), albedo: Color::new(0.8, 0.90, 0.81) };
-    let material_center = Material::Lambertian { albedo: Color::new(0.8, 0.2, 0.1) };
-    let material_behind = Material::Lambertian { albedo: Color::new(0.1, 0.2, 0.8) };
-    let material_pink_glass = Material::Dielectric { index_of_refraction: 2.4, albedo: Color::new(0.99, 0.3, 0.8) };
-    //add spheres to list
+    let material_glass = Material::Dielectric { albedo: Color::new(0.8, 0.90, 0.81), index_of_refraction: (1.5) };
+    let material_blue = Material::Lambertian { albedo: Color::new(0.1, 0.2, 0.8) };
+    let material_pink_glass = Material::Dielectric { albedo: Color::new(0.99, 0.3, 0.8), index_of_refraction: 2.4 };
+    let material_ground = Material::Lambertian { albedo: Color::new(0.7,0.8,0.3) };
+    
+    //add spheres and rectangles to world item list
     
     list.push( Box::new( Sphere::new(Point3::new( 1.0, 2.5, 10.0), 2.5, material_green_metall ) ) );
+    list.push( Box::new( RectangleXZ::new(-100.0, 100.0, -100.0, 100.0, 0.0, material_blue_metall ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( 0.0, 0.0,    -1.0), 0.5,   material_center ) ) );
     //list.push( Box::new( Sphere::new(Point3::new(-1.0, 0.0,    -1.0), 0.5,   material_left   ) ) );
     //list.push( Box::new( Sphere::new(Point3::new( 1.0, 0.0,    -1.0), 0.5,   material_right  ) ) );
@@ -88,9 +92,7 @@ fn main() {
     //list.push( Box::new( Rectangle_xy::new(-1.0, 1.0, 0.1, 0.6, -1.0, material_ground ) ) );
     //list.push( Box::new( Rectangle_yz::new(0.0, 1.0, -1.0, 1.0, 0.0, material_center ) ) );
     
-    list.push( Box::new( Rectangle_xz::new(-100.0, 100.0, -100.0, 100.0, 0.0, material_blue_metall ) ) );
-    
-    
+    //pass world into Atomic pointer to allow safe thread access
     let world = Arc::new(HittableList::new(list));
 
     //camera

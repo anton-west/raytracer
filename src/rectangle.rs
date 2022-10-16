@@ -1,8 +1,8 @@
 use crate::material::Material;
-use crate::vec3::{Vec3, Point3, dot};
+use crate::vec3::{Vec3};
 use crate::hittable::{HitRecord, Hittable};
 use crate::ray::Ray;
-pub struct Rectangle_xy {
+pub struct RectangleXY {
     x0: f64,
     x1: f64,
     y0: f64,
@@ -11,7 +11,7 @@ pub struct Rectangle_xy {
     material: Material,
 }
 
-pub struct Rectangle_yz {
+pub struct RectangleYZ {
     y0: f64,
     y1: f64,
     z0: f64,
@@ -20,7 +20,7 @@ pub struct Rectangle_yz {
     material: Material,
 }
 
-pub struct Rectangle_xz {
+pub struct RectangleXZ {
     x0: f64,
     x1: f64,
     z0: f64,
@@ -29,28 +29,28 @@ pub struct Rectangle_xz {
     material: Material,
 }
 
-impl Rectangle_xy {
-    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k:f64, material: Material) -> Rectangle_xy{
-        Rectangle_xy { x0, x1, y0, y1, k, material }
+impl RectangleXY {
+    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k:f64, material: Material) -> RectangleXY{
+        RectangleXY { x0, x1, y0, y1, k, material }
     }
 
 }
 
-impl Rectangle_yz {
-    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k:f64, material: Material) -> Rectangle_yz{
-        Rectangle_yz { y0, y1, z0, z1, k, material }
+impl RectangleYZ {
+    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k:f64, material: Material) -> RectangleYZ{
+        RectangleYZ { y0, y1, z0, z1, k, material }
     }
 
 }
 
-impl Rectangle_xz {
-    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k:f64, material: Material) -> Rectangle_xz{
-        Rectangle_xz { x0, x1, z0, z1, k, material }
+impl RectangleXZ {
+    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k:f64, material: Material) -> RectangleXZ{
+        RectangleXZ { x0, x1, z0, z1, k, material }
     }
 
 }
 
-impl Hittable for Rectangle_xy {
+impl Hittable for RectangleXY {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         //find t value for when ray hits plane of rectangle
         let a_z = r.origin.z();
@@ -83,7 +83,7 @@ impl Hittable for Rectangle_xy {
     }
 }
 
-impl Hittable for Rectangle_yz {
+impl Hittable for RectangleYZ {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         //find t value for when ray hits plane of rectangle
         let a_x = r.origin.x();
@@ -116,7 +116,7 @@ impl Hittable for Rectangle_yz {
     }
 }
 
-impl Hittable for Rectangle_xz {
+impl Hittable for RectangleXZ {
     fn hit(&self, r: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
         //find t value for when ray hits plane of rectangle
         let a_y = r.origin.y();
@@ -149,7 +149,9 @@ impl Hittable for Rectangle_xz {
     }
 }
 
+/*
 #[cfg(test)]
 mod tests {
     //use super::*;
 }
+*/

@@ -1,3 +1,4 @@
+use std::{path::Path, fs::File};
 use rand::Rng;
 
 //handy rng helpers
