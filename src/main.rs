@@ -11,7 +11,7 @@ use raytracer::{INFINITY, random_f64};
 use crate::hittable::{Hittable};
 use crate::hittable_list::HittableList;
 use crate::material::{Material, scatter};
-use crate::vec3::{Vec3, Color, Point3, unit_vector,};
+use crate::vec3::{Vec3, Color, Point3, unit_vector, color_to_string,};
 use crate::ray::Ray;
 use crate::sphere::Sphere;
 use crate::rectangle::{RectangleXY, RectangleYZ, RectangleXZ};
@@ -126,7 +126,7 @@ fn main() {
     let now = std::time::Instant::now();
 
     let number_of_lines_per_thread = IMAGE_HEIGHT / THREAD_N;
-    let mut image_array = vec![vec![String::new(); (number_of_lines_per_thread * IMAGE_WIDTH) as usize]; THREAD_N as usize];
+    let mut image_array = vec![vec![Color::BLACK; (number_of_lines_per_thread * IMAGE_WIDTH + (IMAGE_HEIGHT % THREAD_N)) as usize]; THREAD_N as usize];
     let mut handles = Vec::with_capacity(THREAD_N as usize);
 
     for nth_thread in 0..THREAD_N {
@@ -140,7 +140,7 @@ fn main() {
         
         //new thread for every line in image
         handles.push(thread::spawn(move || {
-            let mut color_array: Vec<String> = Vec::with_capacity((number_of_lines_per_thread * IMAGE_WIDTH) as usize);
+            let mut pixel_array: Vec<Color> = Vec::with_capacity((number_of_lines_per_thread * IMAGE_WIDTH) as usize);
             for j in (start_index..end_index).rev() {
                 
                 let progress = (1.0 - j as f64 / end_index as f64) * 100.0;
@@ -158,12 +158,9 @@ fn main() {
                 
                         pixel_color += ray_color(&r, &arc_world, MAX_DEPTH);
                     }
-
-                    let color_string = vec3::color_to_string(pixel_color, 2.0, SAMPLES_PER_PIXEL);
-                    let color_string = format!("{color_string}\n");
-                    color_array.push(color_string);
+                    pixel_array.push(pixel_color);
                 }}
-            (color_array, nth_thread)
+            (pixel_array, nth_thread)
         }));
     }
 
@@ -177,7 +174,9 @@ fn main() {
 
     for t in (0..THREAD_N).rev() {
         for element in &image_array[t as usize] {
-            let color_string = element;
+            let pixel_color = element;
+            let color_string = color_to_string(*pixel_color, 2.0, SAMPLES_PER_PIXEL);
+            let color_string = format!("{color_string}\n");
             match output_file.write_all(color_string.as_bytes()) {
                 Err(why) => panic!("couldn't write to {}: {}", display, why),
                 Ok(_) => (),
@@ -192,5 +191,5 @@ fn main() {
     let frac_sec = elapsed_dur.as_secs_f64() - (mins*60) as f64;
 
     eprintln!("\nTime to render: {:02}:{:02}:{:05.02}", hours, mins, frac_sec);
-
+    eprintln!("Wrote to {OUTPUT_FILENAME}");
 }
