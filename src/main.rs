@@ -21,6 +21,7 @@ use std::sync::Arc;
 use std::thread;
 
 use std::fs::File;
+use std::fs;
 use std::path::Path;
 use std::io::Write;
 
@@ -110,6 +111,12 @@ fn main() {
     //TODO: move file io to own function
     let path = Path::new(OUTPUT_FILENAME);
     let display = path.display();
+
+    match fs::create_dir_all(path.parent().unwrap()) {
+        Err(why) => panic!("couldn't create {}: {}", path.parent().unwrap().display(), why),
+        Ok(a) => a,
+    };
+
     let mut output_file = match File::create(&path) {
         Err(why) => panic!("couldn't create {}: {}", display, why),
         Ok(file) => file,
