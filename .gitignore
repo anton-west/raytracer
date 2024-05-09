@@ -6,3 +6,4 @@
 /target
 *.sh
 *.ps1
+.DS_Store
